@@ -1,0 +1,30 @@
+#cloud-config
+package_upgrade: true
+packages:
+  - epel-release
+  - wget
+  - git
+  - mc
+  - podman
+  - python39
+  - net-tools
+  - tmux
+hostname: ${node_hostname}
+fqdn: ${node_hostname}.${node_domain_search}
+timezone: Europe/Samara
+ssh_pwauth: true
+users:
+  - name: ${username}
+    passwd: ${password}
+    groups: 
+      - wheel
+    lock-passwd: false
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    ssh_authorized_keys:
+      - ${ssh_public_key}
+power_state:
+  delay: now
+  mode: reboot
+  message: Rebooting after cloud-init completion
+  condition: true

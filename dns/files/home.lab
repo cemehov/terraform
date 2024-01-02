@@ -1,0 +1,13 @@
+$ORIGIN .
+$TTL 3600;
+home.lab       IN      SOA     dns1.home.lab. admin.home.lab. (
+                                2022122403      ;serial
+                                3600            ;refresh
+                                1800            ;retry
+                                604800          ;expire
+                                86400           ;minimum ttl
+)
+            NS  dns1.home.lab.
+;
+$ORIGIN home.lab.
+dns1        A       192.168.8.5

@@ -1,3 +1,10 @@
+.env
+private.pgp
+public.pgp
 .terraform*
 *.tfstate
 *.backup
+*/files/vm-*
+*/.terraform*
+*/*.tfstate
+*/*.backup

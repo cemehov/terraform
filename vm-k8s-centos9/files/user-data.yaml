@@ -1,0 +1,82 @@
+#cloud-config
+package_upgrade: true
+packages:
+  - epel-release
+  - wget
+  - git
+  - mc
+  - podman
+  - python39
+  - net-tools
+  - tmux
+  - cri-o
+  - kubeadm
+yum_repos:
+  kubernetes:
+    baseurl: https://pkgs.k8s.io/core:/stable:/v1.26/rpm/
+    enabled: true
+    gpgcheck: true
+    gpgkey: https://pkgs.k8s.io/core:/stable:/v1.26/rpm/repodata/repomd.xml.key
+    name: Kubernetes
+  crio:
+    baseurl: https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/1.23:/1.23.5/CentOS_8/
+    enabled: true
+    gpgcheck: true
+    gpgkey: https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/1.23:/1.23.5/CentOS_8/repodata/repomd.xml.key
+    name: devel:kubic:libcontainers:stable:cri-o:1.23:1.23.5 (CentOS_8)
+hostname: ${node_hostname}
+fqdn: ${node_hostname}.${node_domain_search}
+timezone: Europe/Samara
+ssh_pwauth: true
+users:
+  - name: ${username}
+    passwd: ${password}
+    groups: 
+      - wheel
+    lock-passwd: false
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    ssh_authorized_keys:
+      - ${ssh_public_key}
+power_state:
+  delay: now
+  mode: reboot
+  message: Rebooting after cloud-init completion
+  condition: true
+write_files:
+- encoding: b64
+  content: U0VMSU5VWD1wZXJtaXNzaXZlClNFTElOVVhUWVBFPXRhcmdldGVkCg==
+  owner: root:root
+  path: /etc/sysconfig/selinux
+  permissions: '0644'
+- content: |
+    net.bridge.bridge-nf-call-iptables  = 1
+    net.bridge.bridge-nf-call-ip6tables = 1
+    net.ipv4.ip_forward                 = 1
+  path: /etc/sysctl.d/k8s.conf
+  append: true
+- content: |
+    overlay
+    br_netfilter
+  path: /etc/modules-load.d/k8s.conf
+  append: true
+- encoding: b64
+  content: |
+    ewogICAgImRlZmF1bHQiOiBbCiAgICAgICAgewogICAgICAgICAgICAidHlwZSI6ICJpbnNlY3Vy
+    ZUFjY2VwdEFueXRoaW5nIgogICAgICAgIH0KICAgIF0sCiAgICAidHJhbnNwb3J0cyI6IHsKICAg
+    ICAgICAiZG9ja2VyIjogewoJICAgICJyZWdpc3RyeS5hY2Nlc3MucmVkaGF0LmNvbSI6IFsKCQl7
+    CgkJICAgICJ0eXBlIjogInNpZ25lZEJ5IiwKCQkgICAgImtleVR5cGUiOiAiR1BHS2V5cyIsCgkJ
+    ICAgICJrZXlQYXRoIjogIi9ldGMvcGtpL3JwbS1ncGcvUlBNLUdQRy1LRVktcmVkaGF0LXJlbGVh
+    c2UiCgkJfQoJICAgIF0sCgkgICAgInJlZ2lzdHJ5LnJlZGhhdC5pbyI6IFsKCQl7CgkJICAgICJ0
+    eXBlIjogInNpZ25lZEJ5IiwKCQkgICAgImtleVR5cGUiOiAiR1BHS2V5cyIsCgkJICAgICJrZXlQ
+    YXRoIjogIi9ldGMvcGtpL3JwbS1ncGcvUlBNLUdQRy1LRVktcmVkaGF0LXJlbGVhc2UiCgkJfQoJ
+    ICAgIF0KCX0sCiAgICAgICAgImRvY2tlci1kYWVtb24iOiB7CgkgICAgIiI6IFsKCQl7CgkJICAg
+    ICJ0eXBlIjogImluc2VjdXJlQWNjZXB0QW55dGhpbmciCgkJfQoJICAgIF0KCX0KICAgIH0KfQo=
+  path: /etc/containers/policy.json
+  append: true
+runcmd:
+  - [ sudo, modprobe, overlay ]
+  - [ sudo, modprobe, br_netfilter]
+  - [ sudo, setenforce, 0 ]
+  - [ sudo, systemctl, daemon-reload ]
+  - [ sudo, systemctl, enable, crio ]
